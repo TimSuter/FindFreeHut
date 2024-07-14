@@ -32,10 +32,12 @@ def findHutIDs(hutidLimit = 1000):
 
     for hutid in range(1,hutidLimit):
         #wait a bit to not overload the server
-        time.sleep(0.1+ 0.05*randrange(0,10))
+        time.sleep(0.025*randrange(0,10))
         page = s.get(f'https://www.alpsonline.org/reservation/calendar?hut_id={hutid}&selectDate={date}&lang=en')
         soup = bs(page.content, 'html.parser')
         
+        name_check = ['DAV', 'AIV', 'CAI', 'Alpenverein', 'ZZZ', 'AVS']
+
         #If the hut does not exist or is not activated, the error message is different
         erm = soup.find_all('div', {'class': 'errorsMessage'})
         noHutError = f'<div class="errorsMessage">The requested hut [{hutid}] cannot be found. Please check your parameters.</div>'
@@ -51,20 +53,25 @@ def findHutIDs(hutidLimit = 1000):
             hutInfBS = soup.body.find('div', attrs={'class': 'info'}).find_all('span')
             hutname = soup.body.find('div', {'class': 'info'}).find_all('h4')[0].text
 
-            #Skip german, austrian, italian huts
-            if 'DAV' in hutname or 'AIV' in hutname or 'CAI' in hutname or 'Austria' in hutname or 'ZZZ' in hutname:
-                continue
-            #one dataframe with SAC huts only
-            if 'SAC' in hutname:
-                if hutInfBS[3].text[-1] == 'm':
-                    altitude = hutInfBS[3].text[24:-2]
-                else:
-                    altitude = hutInfBS[3].text[24:]
-                hutInfoSAC.loc[hutCounter] = [hutid, hutname, altitude, hutInfBS[4].text[13:], f'https://www.alpsonline.org/reservation/calendar?hut_id={hutid}&selectDate={date}&lang=en']
-                hutCounterSAC += 1
-            #one dataframe with all huts
-            hutInfo.loc[hutCounter] = [hutid, hutname, altitude, hutInfBS[4].text[13:], f'https://www.alpsonline.org/reservation/calendar?hut_id={hutid}&selectDate={date}&lang=en']
-            hutCounter += 1
+        #Skip german, austrian, italian huts
+        skipHut = False
+        for name in name_check:
+            if name in hutname:
+                skipHut = True
+                break
+        if skipHut:
+            continue
+        #one dataframe with SAC huts only
+        if 'SAC' in hutname:
+            if hutInfBS[3].text[-1] == 'm':
+                altitude = hutInfBS[3].text[24:-2]
+            else:
+                altitude = hutInfBS[3].text[24:]
+            hutInfoSAC.loc[hutCounter] = [hutid, hutname, altitude, hutInfBS[4].text[13:], f'https://www.alpsonline.org/reservation/calendar?hut_id={hutid}&selectDate={date}&lang=en']
+            hutCounterSAC += 1
+        #one dataframe with all huts
+        hutInfo.loc[hutCounter] = [hutid, hutname, altitude, hutInfBS[4].text[13:], f'https://www.alpsonline.org/reservation/calendar?hut_id={hutid}&selectDate={date}&lang=en']
+        hutCounter += 1
 
 
     return hutInfo, hutInfoSAC
@@ -87,7 +94,7 @@ def findBeds(date, NumPeople = 1, nights = 1, SACOnly = False):
         df_huts = pd.read_excel('HutInfo.xlsx')
     else:
         df_huts = pd.read_excel('HutInfoSAC.xlsx')
-
+    
     #initialize pandas dataframe
     df_freeHuts = pd.DataFrame(columns = ['Hut Name', 'Altitude', 'Free Beds', 'Capacity', 'Service', 'Reservation Link'])
 
@@ -107,7 +114,7 @@ def findBeds(date, NumPeople = 1, nights = 1, SACOnly = False):
         progress = round((index+1)/nHuts * 100)
         my_bar.progress(progress, text=progress_text)
         #wait a bit to not overload the server
-        time.sleep(0.025*randrange(0,10))
+        #time.sleep(0.025*randrange(0,10))
         r = s.get(f'https://www.alpsonline.org/reservation/calendar?hut_id={hut}')
         r = s.get(f'https://www.alpsonline.org/reservation/selectDate?date={date}')
         json_list = []
