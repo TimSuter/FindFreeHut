@@ -7,22 +7,6 @@ from random import randrange
 from datetime import datetime
 import utils.func as func
 
-import plotly.express as px
-
-#build input for calendar
-#year = int(datetime.today().strftime('%Y'))
-#month = int(datetime.today().strftime('%m'))
-#day = int(datetime.today().strftime('%d'))
-
-
-
-def display_map(location_data):
-    fig = px.scatter_mapbox(location_data, lat="Latitude", lon="Longitude", hover_name="Hut Name", hover_data=["Altitude"],)
-    
-    fig.update_layout(mapbox_style="open-street-map")
-    
-    return fig
-
 
 #On what date is the first nicht of the reservation?
 date = st.date_input("When do you want to start your stay?", datetime.today())
