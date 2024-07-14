@@ -71,6 +71,9 @@ def findHutIDs(hutidLimit = 1000):
 
 
 def findBeds(date, NumPeople = 1, nights = 1, SACOnly = False):
+
+    progress_text = "Finding free huts..."
+    my_bar = st.progress(0, text=progress_text)
     #Input:
         #first night of the reservation
         #look for all huts, not just SAC huts
@@ -98,9 +101,11 @@ def findBeds(date, NumPeople = 1, nights = 1, SACOnly = False):
     s.headers.update(headers)
 
     hutCounter = 0 #count how many huts we've found
-    
+    nHuts = len(df_huts['Hut ID'])
     #loop through all hutIDs
     for index, hut in enumerate(df_huts['Hut ID']):
+        progress = round((index+1)/nHuts * 100)
+        my_bar.progress(progress, text=progress_text)
         #wait a bit to not overload the server
         time.sleep(0.025*randrange(0,10))
         r = s.get(f'https://www.alpsonline.org/reservation/calendar?hut_id={hut}')
@@ -122,9 +127,9 @@ def findBeds(date, NumPeople = 1, nights = 1, SACOnly = False):
                 service = 'Self-Service'
             else:
                 service = 'Full-Service'
-   
-            df_freeHuts.loc[hutCounter] = [df_huts['Hut Name'][index], str(df_huts['Altitude'][index]) + " m", df['freeRoom'][0], str(round(df['reservedRoomsRatio'][0]*100)) + " %", service, df_huts['Reservation Link'][index]]
+            
+            df_freeHuts.loc[hutCounter] = [df_huts['Hut Name'][index], str(df_huts['Altitude'][index]) + " m", df['freeRoom'][0], str(round(df['reservedRoomsRatio'][0]*100)) + " %", service, f'https://www.alpsonline.org/reservation/calendar?hut_id={hut}&selectDate={date}&lang=en']
             hutCounter += 1
-
+    my_bar.progress(100, text="Done!")
     
     return df_freeHuts
