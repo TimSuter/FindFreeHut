@@ -6,7 +6,7 @@ import time
 from random import randrange
 import streamlit as st
 
-def findHutIDs(SACOnly = False):
+def findHutIDs(hutidLimit = 1000):
     #goes through all hut ids and checks if the hut exists
     #if the hut exists, it saves the hut id, altitude and coordinates in a dataframe
     #if the hut does not exist, it is skipped
@@ -18,7 +18,6 @@ def findHutIDs(SACOnly = False):
     date = '11.07.2027' #pick a date well into the future
     hutCounter = 0
     hutCounterSAC = 0
-    hutidLimit = 1000  #up to which hut we should check
     #------------change hutidLmit to 1000 to check all huts-----------
 
     
@@ -33,7 +32,7 @@ def findHutIDs(SACOnly = False):
 
     for hutid in range(1,hutidLimit):
         #wait a bit to not overload the server
-        time.sleep(0.25+ 0.1*randrange(0,10))
+        time.sleep(0.1+ 0.05*randrange(0,10))
         page = s.get(f'https://www.alpsonline.org/reservation/calendar?hut_id={hutid}&selectDate={date}&lang=en')
         soup = bs(page.content, 'html.parser')
         
@@ -53,14 +52,18 @@ def findHutIDs(SACOnly = False):
             hutname = soup.body.find('div', {'class': 'info'}).find_all('h4')[0].text
 
             #Skip german, austrian, italian huts
-            if 'DAV' in hutname or 'AIV' in hutname or 'CAI' in hutname or 'Austria' in hutname:
+            if 'DAV' in hutname or 'AIV' in hutname or 'CAI' in hutname or 'Austria' in hutname or 'ZZZ' in hutname:
                 continue
             #one dataframe with SAC huts only
             if 'SAC' in hutname:
-                hutInfoSAC.loc[hutCounter] = [hutid, hutname, hutInfBS[3].text[24:-2], hutInfBS[4].text[13:], f'https://www.alpsonline.org/reservation/calendar?hut_id={hutid}&selectDate={date}&lang=en']
+                if hutInfBS[3].text[-1] == 'm':
+                    altitude = hutInfBS[3].text[24:-2]
+                else:
+                    altitude = hutInfBS[3].text[24:]
+                hutInfoSAC.loc[hutCounter] = [hutid, hutname, altitude, hutInfBS[4].text[13:], f'https://www.alpsonline.org/reservation/calendar?hut_id={hutid}&selectDate={date}&lang=en']
                 hutCounterSAC += 1
             #one dataframe with all huts
-            hutInfo.loc[hutCounter] = [hutid, hutname, hutInfBS[3].text[24:-2], hutInfBS[4].text[13:], f'https://www.alpsonline.org/reservation/calendar?hut_id={hutid}&selectDate={date}&lang=en']
+            hutInfo.loc[hutCounter] = [hutid, hutname, altitude, hutInfBS[4].text[13:], f'https://www.alpsonline.org/reservation/calendar?hut_id={hutid}&selectDate={date}&lang=en']
             hutCounter += 1
 
 
@@ -99,7 +102,7 @@ def findBeds(date, NumPeople = 1, nights = 1, SACOnly = False):
     #loop through all hutIDs
     for index, hut in enumerate(df_huts['Hut ID']):
         #wait a bit to not overload the server
-        time.sleep(0.2+ 0.1*randrange(0,10))
+        time.sleep(0.025*randrange(0,10))
         r = s.get(f'https://www.alpsonline.org/reservation/calendar?hut_id={hut}')
         r = s.get(f'https://www.alpsonline.org/reservation/selectDate?date={date}')
         json_list = []
@@ -119,7 +122,8 @@ def findBeds(date, NumPeople = 1, nights = 1, SACOnly = False):
                 service = 'Self-Service'
             else:
                 service = 'Full-Service'
-            df_freeHuts.loc[hutCounter] = [df_huts['Hut Name'][index], df_huts['Altitude'][index] + " m", df['freeRoom'][0], str(round(df['reservedRoomsRatio'][0]*100)) + " %", service, df_huts['Reservation Link'][index], df_huts['Coordinates'][index]]
+   
+            df_freeHuts.loc[hutCounter] = [df_huts['Hut Name'][index], str(df_huts['Altitude'][index]) + " m", df['freeRoom'][0], str(round(df['reservedRoomsRatio'][0]*100)) + " %", service, df_huts['Reservation Link'][index]]
             hutCounter += 1
 
     
