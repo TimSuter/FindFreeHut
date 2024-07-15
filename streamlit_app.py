@@ -15,14 +15,23 @@ beds = st.number_input("How many beds do you need?", min_value = 1, max_value = 
 #How many nights?
 nights = st.number_input("How many nights do you want to stay?", min_value = 1, max_value = 99, value = 1, step = 1)
 
-SACOnlyToggle = st.toggle("Only SAC huts?", True)
-SACOnly = True
+def switchCHOnly():
+    if st.session_state.t1:
+        st.session_state.t2 = True
+
+SACOnlyToggle = st.toggle("Only SAC huts", True, on_change= switchCHOnly, key = "t1")
+ChOnlyToggle = st.toggle("Only huts in Switzerland", True, key = "t2")
+
 
 #button to start search
 if st.button("Find free huts!"):
+    if SACOnlyToggle:
+        SACOnly = True
+    if ChOnlyToggle:
+        CHOnly = True
     dateStr = str(date.day) + '.' + str(date.month) + '.' + str(date.year)
     #use input information (date, beds, nights) to find free huts
-    df_freeHuts = func.findBeds(dateStr, beds, nights, SACOnly)
+    df_freeHuts = func.findBeds(dateStr, beds, nights, SACOnlyToggle, ChOnlyToggle)
     #display the results with streamlit
     st.markdown(df_freeHuts.to_html(render_links=True, escape=False, index = False), unsafe_allow_html=True)
 
