@@ -33,7 +33,7 @@ def findHutIDs(hutidLimit = 1000):
 
     for hutid in range(1,hutidLimit):
         #wait a bit to not overload the server
-        time.sleep(0.5*randrange(0,10))
+        time.sleep(0.25*randrange(0,10))
         page = s.get(f'https://www.alpsonline.org/reservation/calendar?hut_id={hutid}&selectDate={date}&lang=en')
         soup = bs(page.content, 'html.parser')
         
@@ -128,7 +128,7 @@ def findBeds(date, NumPeople = 1, nights = 1, SACOnly = True, CHOnly = False):
         my_bar.progress(progress, text=progress_text)
         timeleft.write("Estimated time: " + str(round(timePerHut * (nHuts - (index + 1)), 0)) + " seconds")
         #wait a bit to not overload the server
-        time.sleep(0.25 + 0.2*randrange(0,10))
+        time.sleep(0.1 + 0.1*randrange(0,5))
         r = s.get(f'https://www.alpsonline.org/reservation/calendar?hut_id={hut}')
         r = s.get(f'https://www.alpsonline.org/reservation/selectDate?date={date}')
         json_list = []
