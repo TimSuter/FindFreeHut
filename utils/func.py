@@ -99,7 +99,7 @@ def findBeds(date, NumPeople = 1, nights = 1, SACOnly = True, CHOnly = False):
     if SACOnly:
         df_huts = pd.read_excel('HutInfoSAC.xlsx')
     elif CHOnly:
-        df_huts = pd.read_excel('HutInfoCH.xlsx')
+        df_huts = pd.read_excel('HutInfoCH2.xlsx')
     else:
         df_huts = pd.read_excel('HutInfo.xlsx')
     #initialize pandas dataframe

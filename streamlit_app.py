@@ -34,6 +34,7 @@ if st.button("Find free huts!"):
     df_freeHuts = func.findBeds(dateStr, beds, nights, SACOnlyToggle, ChOnlyToggle)
     #display the results with streamlit
     st.markdown(df_freeHuts.to_html(render_links=True, escape=False, index = False), unsafe_allow_html=True)
+    st.dataframe(df_freeHuts)
 
     #display the huts on a map
     #this is a bit annyoing to do, because the coordinates are stored in a special swiss format
