@@ -56,8 +56,10 @@ def findHutIDs(hutidLimit = 1000):
             hutInfBS = soup.body.find('div', attrs={'class': 'info'}).find_all('span')
             hutname = soup.body.find('div', {'class': 'info'}).find_all('h4')[0].text
 
-        if hutInfBS[3].text[-1] == 'm':
+        if hutInfBS[3].text[-2:] == ' m':
             altitude = hutInfBS[3].text[24:-2]
+        elif hutInfBS[3].text[-1] == 'm':
+            altitude = hutInfBS[3].text[24:-1]
         else:
             altitude = hutInfBS[3].text[24:]
 
